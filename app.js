@@ -1,9 +1,10 @@
 // Initialize Three.js scene
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0xf0f0f0);
 document.getElementById('room-container').appendChild(renderer.domElement);
 
 // Room dimensions
@@ -25,18 +26,26 @@ const wallColors = {
 function createRoom() {
     const roomGeometry = new THREE.BoxGeometry(roomWidth, roomHeight, roomDepth);
     const roomMaterials = [
-        new THREE.MeshBasicMaterial({color: wallColors.right, side: THREE.BackSide}),
-        new THREE.MeshBasicMaterial({color: wallColors.left, side: THREE.BackSide}),
-        new THREE.MeshBasicMaterial({color: wallColors.top, side: THREE.BackSide}),
-        new THREE.MeshBasicMaterial({color: wallColors.bottom, side: THREE.BackSide}),
-        new THREE.MeshBasicMaterial({color: wallColors.front, side: THREE.BackSide}),
-        new THREE.MeshBasicMaterial({color: wallColors.back, side: THREE.BackSide})
+        new THREE.MeshPhongMaterial({color: wallColors.right, side: THREE.BackSide}),
+        new THREE.MeshPhongMaterial({color: wallColors.left, side: THREE.BackSide}),
+        new THREE.MeshPhongMaterial({color: wallColors.top, side: THREE.BackSide}),
+        new THREE.MeshPhongMaterial({color: wallColors.bottom, side: THREE.BackSide}),
+        new THREE.MeshPhongMaterial({color: wallColors.front, side: THREE.BackSide}),
+        new THREE.MeshPhongMaterial({color: wallColors.back, side: THREE.BackSide})
     ];
     return new THREE.Mesh(roomGeometry, roomMaterials);
 }
 
 let room = createRoom();
 scene.add(room);
+
+// Lighting
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambientLight);
+
+const pointLight = new THREE.PointLight(0xffffff, 0.8);
+pointLight.position.set(0, roomHeight - 1, 0);
+scene.add(pointLight);
 
 camera.position.set(0, roomHeight / 2, roomDepth / 2 + 5);
 camera.lookAt(0, roomHeight / 2, 0);
@@ -54,27 +63,20 @@ function createFurniture(type) {
 
     switch (type) {
         case 'chair':
-            // Create chair base
             geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-            material = new THREE.MeshBasicMaterial({color: color});
+            material = new THREE.MeshPhongMaterial({color: color});
             mesh = new THREE.Mesh(geometry, material);
-
-            // Create chair back
             const backGeometry = new THREE.BoxGeometry(0.5, 0.7, 0.1);
             const backMesh = new THREE.Mesh(backGeometry, material);
             backMesh.position.set(0, 0.6, -0.2);
             mesh.add(backMesh);
             break;
-
         case 'table':
-            // Create table top
             geometry = new THREE.BoxGeometry(1.5, 0.1, 1);
-            material = new THREE.MeshBasicMaterial({color: color});
+            material = new THREE.MeshPhongMaterial({color: color});
             mesh = new THREE.Mesh(geometry, material);
-
-            // Create table legs
             const legGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.7);
-            const legMaterial = new THREE.MeshBasicMaterial({color: color});
+            const legMaterial = new THREE.MeshPhongMaterial({color: color});
             for (let i = 0; i < 4; i++) {
                 const leg = new THREE.Mesh(legGeometry, legMaterial);
                 leg.position.set(
@@ -85,79 +87,84 @@ function createFurniture(type) {
                 mesh.add(leg);
             }
             break;
+            case 'bed':
+                // Create bed base
+                geometry = new THREE.BoxGeometry(2, 0.3, 1.5);
+                material = new THREE.MeshBasicMaterial({color: color});
+                mesh = new THREE.Mesh(geometry, material);
+    
+                // Create bed headboard
+                const headboardGeometry = new THREE.BoxGeometry(2, 0.8, 0.1);
+                const headboardMesh = new THREE.Mesh(headboardGeometry, material);
+                headboardMesh.position.set(0, 0.55, -0.7);
+                mesh.add(headboardMesh);
+                break;
+    
+            case 'sofa':
+                // Create sofa base
+                geometry = new THREE.BoxGeometry(2, 0.5, 1);
+                material = new THREE.MeshBasicMaterial({color: color});
+                mesh = new THREE.Mesh(geometry, material);
+    
+                // Create sofa back
+                const sofaBackGeometry = new THREE.BoxGeometry(2, 0.7, 0.3);
+                const sofaBackMesh = new THREE.Mesh(sofaBackGeometry, material);
+                sofaBackMesh.position.set(0, 0.6, -0.35);
+                mesh.add(sofaBackMesh);
+    
+                // Create sofa arms
+                const armGeometry = new THREE.BoxGeometry(0.3, 0.7, 1);
+                const leftArm = new THREE.Mesh(armGeometry, material);
+                leftArm.position.set(-0.85, 0.1, 0);
+                mesh.add(leftArm);
+                const rightArm = new THREE.Mesh(armGeometry, material);
+                rightArm.position.set(0.85, 0.1, 0);
+                mesh.add(rightArm);
+                break;
+    
+            case 'bookshelf':
+                // Create bookshelf base
+                geometry = new THREE.BoxGeometry(1.5, 2, 0.4);
+                material = new THREE.MeshBasicMaterial({color: color});
+                mesh = new THREE.Mesh(geometry, material);
+    
+                // Create shelves
+                const shelfGeometry = new THREE.BoxGeometry(1.4, 0.05, 0.38);
+                for (let i = 1; i < 5; i++) {
+                    const shelf = new THREE.Mesh(shelfGeometry, material);
+                    shelf.position.set(0, -1 + i * 0.5, 0);
+                    mesh.add(shelf);
+                }
+                break;
 
-        case 'bed':
-            // Create bed base
-            geometry = new THREE.BoxGeometry(2, 0.3, 1.5);
-            material = new THREE.MeshBasicMaterial({color: color});
-            mesh = new THREE.Mesh(geometry, material);
-
-            // Create bed headboard
-            const headboardGeometry = new THREE.BoxGeometry(2, 0.8, 0.1);
-            const headboardMesh = new THREE.Mesh(headboardGeometry, material);
-            headboardMesh.position.set(0, 0.55, -0.7);
-            mesh.add(headboardMesh);
-            break;
-
-        case 'sofa':
-            // Create sofa base
-            geometry = new THREE.BoxGeometry(2, 0.5, 1);
-            material = new THREE.MeshBasicMaterial({color: color});
-            mesh = new THREE.Mesh(geometry, material);
-
-            // Create sofa back
-            const sofaBackGeometry = new THREE.BoxGeometry(2, 0.7, 0.3);
-            const sofaBackMesh = new THREE.Mesh(sofaBackGeometry, material);
-            sofaBackMesh.position.set(0, 0.6, -0.35);
-            mesh.add(sofaBackMesh);
-
-            // Create sofa arms
-            const armGeometry = new THREE.BoxGeometry(0.3, 0.7, 1);
-            const leftArm = new THREE.Mesh(armGeometry, material);
-            leftArm.position.set(-0.85, 0.1, 0);
-            mesh.add(leftArm);
-            const rightArm = new THREE.Mesh(armGeometry, material);
-            rightArm.position.set(0.85, 0.1, 0);
-            mesh.add(rightArm);
-            break;
-
-        case 'bookshelf':
-            // Create bookshelf base
-            geometry = new THREE.BoxGeometry(1.5, 2, 0.4);
-            material = new THREE.MeshBasicMaterial({color: color});
-            mesh = new THREE.Mesh(geometry, material);
-
-            // Create shelves
-            const shelfGeometry = new THREE.BoxGeometry(1.4, 0.05, 0.38);
-            for (let i = 1; i < 5; i++) {
-                const shelf = new THREE.Mesh(shelfGeometry, material);
-                shelf.position.set(0, -1 + i * 0.5, 0);
-                mesh.add(shelf);
-            }
-            break;
-
-        default:
+                        default:
             geometry = new THREE.BoxGeometry(1, 1, 1);
-            material = new THREE.MeshBasicMaterial({color: color});
+            material = new THREE.MeshPhongMaterial({color: color});
             mesh = new THREE.Mesh(geometry, material);
     }
 
+    mesh.userData.type = type;
     return mesh;
 }
 
-// Function to add furniture
+// Function to add furniture with animation
 function addFurniture(type) {
     const item = createFurniture(type);
     
-    // Random position within the room
     item.position.set(
         (Math.random() - 0.5) * (roomWidth - 2),
-        item.geometry.parameters.height / 2,
+        roomHeight,
         (Math.random() - 0.5) * (roomDepth - 2)
     );
     
     scene.add(item);
     furniture.push(item);
+
+    // Animation: Drop furniture from the ceiling
+    new TWEEN.Tween(item.position)
+        .to({ y: item.geometry.parameters.height / 2 }, 1000)
+        .easing(TWEEN.Easing.Bounce.Out)
+        .start();
 }
 
 // Function to update room dimensions
@@ -166,11 +173,11 @@ function updateRoomDimensions() {
     room = createRoom();
     scene.add(room);
     
-    // Update camera position
     camera.position.set(0, roomHeight / 2, roomDepth / 2 + 5);
     camera.lookAt(0, roomHeight / 2, 0);
     
-    // Update furniture positions
+    pointLight.position.set(0, roomHeight - 1, 0);
+    
     furniture.forEach(item => {
         item.position.clamp(
             new THREE.Vector3(-roomWidth/2 + 1, item.position.y, -roomDepth/2 + 1),
@@ -181,12 +188,10 @@ function updateRoomDimensions() {
 
 // Function to update wall colors
 function updateWallColors() {
-    room.material[0].color.setHex(wallColors.right);
-    room.material[1].color.setHex(wallColors.left);
-    room.material[2].color.setHex(wallColors.top);
-    room.material[3].color.setHex(wallColors.bottom);
-    room.material[4].color.setHex(wallColors.front);
-    room.material[5].color.setHex(wallColors.back);
+    room.material.forEach((mat, index) => {
+        const wallName = ['right', 'left', 'top', 'bottom', 'front', 'back'][index];
+        mat.color.setHex(wallColors[wallName]);
+    });
 }
 
 // Stats
@@ -194,8 +199,9 @@ const stats = new Stats();
 document.body.appendChild(stats.dom);
 
 // Animation loop
-function animate() {
+function animate(time) {
     requestAnimationFrame(animate);
+    TWEEN.update(time);
     controls.update();
     renderer.render(scene, camera);
     stats.update();
@@ -241,7 +247,7 @@ window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// New feature: Save room layout
+// Save room layout
 document.getElementById('save-layout').addEventListener('click', () => {
     const layout = {
         roomDimensions: { width: roomWidth, height: roomHeight, depth: roomDepth },
@@ -256,7 +262,7 @@ document.getElementById('save-layout').addEventListener('click', () => {
     alert('Room layout saved!');
 });
 
-// New feature: Load room layout
+// Load room layout
 document.getElementById('load-layout').addEventListener('click', () => {
     const savedLayout = localStorage.getItem('roomLayout');
     if (savedLayout) {
@@ -272,13 +278,20 @@ document.getElementById('load-layout').addEventListener('click', () => {
         furniture.forEach(item => scene.remove(item));
         furniture.length = 0;
         
-        // Add saved furniture
+        // Add saved furniture with animation
         layout.furniture.forEach(item => {
             const newItem = createFurniture(item.type);
             newItem.position.fromArray(item.position);
             newItem.rotation.fromArray(item.rotation);
             scene.add(newItem);
             furniture.push(newItem);
+
+            // Animation: Scale up the loaded furniture
+            newItem.scale.set(0.1, 0.1, 0.1);
+            new TWEEN.Tween(newItem.scale)
+                .to({ x: 1, y: 1, z: 1 }, 1000)
+                .easing(TWEEN.Easing.Elastic.Out)
+                .start();
         });
         
         alert('Room layout loaded!');
@@ -287,7 +300,7 @@ document.getElementById('load-layout').addEventListener('click', () => {
     }
 });
 
-// New feature: Toggle grid
+// Toggle grid
 let grid;
 document.getElementById('toggle-grid').addEventListener('click', () => {
     if (grid) {
@@ -300,3 +313,60 @@ document.getElementById('toggle-grid').addEventListener('click', () => {
         grid = gridHelper;
     }
 });
+
+// New feature: Rotate furniture
+document.getElementById('rotate-furniture').addEventListener('click', () => {
+    const selectedFurniture = furniture.find(item => item.userData.selected);
+    if (selectedFurniture) {
+        new TWEEN.Tween(selectedFurniture.rotation)
+            .to({ y: selectedFurniture.rotation.y + Math.PI / 2 }, 500)
+            .easing(TWEEN.Easing.Quadratic.InOut)
+            .start();
+    } else {
+        alert('Please select a furniture item to rotate.');
+    }
+});
+
+// New feature: Delete furniture
+document.getElementById('delete-furniture').addEventListener('click', () => {
+    const selectedIndex = furniture.findIndex(item => item.userData.selected);
+    if (selectedIndex !== -1) {
+        const selectedFurniture = furniture[selectedIndex];
+        new TWEEN.Tween(selectedFurniture.scale)
+            .to({ x: 0.1, y: 0.1, z: 0.1 }, 500)
+            .easing(TWEEN.Easing.Back.In)
+            .onComplete(() => {
+                scene.remove(selectedFurniture);
+                furniture.splice(selectedIndex, 1);
+            })
+            .start();
+    } else {
+        alert('Please select a furniture item to delete.');
+    }
+});
+
+// Raycaster for selecting furniture
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+renderer.domElement.addEventListener('click', onMouseClick, false);
+
+function onMouseClick(event) {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+
+    const intersects = raycaster.intersectObjects(furniture);
+
+    furniture.forEach(item => {
+        item.userData.selected = false;
+        item.material.emissive.setHex(0x000000);
+    });
+
+    if (intersects.length > 0) {
+        const selectedItem = intersects[0].object;
+        selectedItem.userData.selected = true;
+        selectedItem.material.emissive.setHex(0x555555);
+    }
+}

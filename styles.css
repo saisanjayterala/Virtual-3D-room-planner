@@ -3,6 +3,7 @@ body, html {
     padding: 0;
     font-family: Arial, sans-serif;
     height: 100%;
+    overflow: hidden;
 }
 
 #app {
@@ -30,15 +31,27 @@ main {
 }
 
 #controls {
-    width: 250px;
+    width: 300px;
     padding: 1rem;
     background-color: #f0f0f0;
     overflow-y: auto;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+section {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #ccc;
+}
+
+section:last-child {
+    border-bottom: none;
 }
 
 h2 {
-    margin-top: 1.5rem;
-    margin-bottom: 0.5rem;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #333;
 }
 
 button, select {
@@ -47,11 +60,26 @@ button, select {
     margin-bottom: 0.5rem;
     padding: 0.5rem;
     font-size: 1rem;
+    border: none;
+    background-color: #4CAF50;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover, select:hover {
+    background-color: #45a049;
+}
+
+select {
+    background-color: white;
+    color: #333;
 }
 
 label {
     display: block;
     margin-top: 0.5rem;
+    color: #666;
 }
 
 input[type="range"] {
@@ -71,8 +99,21 @@ input[type="range"] {
     height: 25px;
     padding: 0;
     border: none;
+    cursor: pointer;
 }
 
 #save-layout, #load-layout, #toggle-grid {
-    margin-top: 0.5rem;
+    background-color: #008CBA;
+}
+
+#save-layout:hover, #load-layout:hover, #toggle-grid:hover {
+    background-color: #007B9A;
+}
+
+#rotate-furniture, #delete-furniture {
+    background-color: #f44336;
+}
+
+#rotate-furniture:hover, #delete-furniture:hover {
+    background-color: #da190b;
 }

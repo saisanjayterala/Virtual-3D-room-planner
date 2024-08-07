@@ -14,45 +14,56 @@
         <main>
             <div id="room-container"></div>
             <div id="controls">
-                <h2>Furniture</h2>
-                <button id="add-furniture">Add Furniture</button>
-                <select id="furniture-type">
-                    <option value="chair">Chair</option>
-                    <option value="table">Table</option>
-                    <option value="bed">Bed</option>
-                    <option value="sofa">Sofa</option>
-                    <option value="bookshelf">Bookshelf</option>
-                </select>
+                <section>
+                    <h2>Furniture</h2>
+                    <select id="furniture-type">
+                        <option value="chair">Chair</option>
+                        <option value="table">Table</option>
+                        <option value="bed">Bed</option>
+                        <option value="sofa">Sofa</option>
+                        <option value="bookshelf">Bookshelf</option>
+                    </select>
+                    <button id="add-furniture">Add Furniture</button>
+                    <button id="rotate-furniture">Rotate Furniture</button>
+                    <button id="delete-furniture">Delete Furniture</button>
+                </section>
 
-                <h2>Room Dimensions</h2>
-                <label for="room-width">Width: <span id="width-value">10</span></label>
-                <input type="range" id="room-width" min="5" max="20" value="10">
-                
-                <label for="room-height">Height: <span id="height-value">5</span></label>
-                <input type="range" id="room-height" min="3" max="10" value="5">
-                
-                <label for="room-depth">Depth: <span id="depth-value">10</span></label>
-                <input type="range" id="room-depth" min="5" max="20" value="10">
+                <section>
+                    <h2>Room Dimensions</h2>
+                    <label for="room-width">Width: <span id="width-value">10</span></label>
+                    <input type="range" id="room-width" min="5" max="20" value="10">
+                    
+                    <label for="room-height">Height: <span id="height-value">5</span></label>
+                    <input type="range" id="room-height" min="3" max="10" value="5">
+                    
+                    <label for="room-depth">Depth: <span id="depth-value">10</span></label>
+                    <input type="range" id="room-depth" min="5" max="20" value="10">
+                </section>
 
-                <h2>Wall Colors</h2>
-                <div id="wall-colors">
-                    <label>Front: <input type="color" id="front-color" value="#cccccc"></label>
-                    <label>Back: <input type="color" id="back-color" value="#cccccc"></label>
-                    <label>Left: <input type="color" id="left-color" value="#cccccc"></label>
-                    <label>Right: <input type="color" id="right-color" value="#cccccc"></label>
-                    <label>Top: <input type="color" id="top-color" value="#cccccc"></label>
-                    <label>Bottom: <input type="color" id="bottom-color" value="#cccccc"></label>
-                </div>
+                <section>
+                    <h2>Wall Colors</h2>
+                    <div id="wall-colors">
+                        <label>Front: <input type="color" id="front-color" value="#cccccc"></label>
+                        <label>Back: <input type="color" id="back-color" value="#cccccc"></label>
+                        <label>Left: <input type="color" id="left-color" value="#cccccc"></label>
+                        <label>Right: <input type="color" id="right-color" value="#cccccc"></label>
+                        <label>Top: <input type="color" id="top-color" value="#cccccc"></label>
+                        <label>Bottom: <input type="color" id="bottom-color" value="#cccccc"></label>
+                    </div>
+                </section>
 
-                <h2>Layout Options</h2>
-                <button id="save-layout">Save Layout</button>
-                <button id="load-layout">Load Layout</button>
-                <button id="toggle-grid">Toggle Grid</button>
+                <section>
+                    <h2>Layout Options</h2>
+                    <button id="save-layout">Save Layout</button>
+                    <button id="load-layout">Load Layout</button>
+                    <button id="toggle-grid">Toggle Grid</button>
+                </section>
             </div>
         </main>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r17/Stats.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
     <script src="app.js"></script>
 </body>
