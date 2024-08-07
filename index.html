@@ -15,7 +15,6 @@
             <div id="room-container"></div>
             <div id="controls">
                 <button id="add-furniture">Add Furniture</button>
-                <button id="change-wall-color">Change Wall Color</button>
                 <select id="furniture-type">
                     <option value="cube">Cube</option>
                     <option value="sphere">Sphere</option>
@@ -28,6 +27,15 @@
                 <input type="range" id="room-height" min="3" max="10" value="5">
                 <label for="room-depth">Depth: <span id="depth-value">10</span></label>
                 <input type="range" id="room-depth" min="5" max="20" value="10">
+                <h3>Wall Colors</h3>
+                <div id="wall-colors">
+                    <label>Front: <input type="color" id="front-color" value="#cccccc"></label>
+                    <label>Back: <input type="color" id="back-color" value="#cccccc"></label>
+                    <label>Left: <input type="color" id="left-color" value="#cccccc"></label>
+                    <label>Right: <input type="color" id="right-color" value="#cccccc"></label>
+                    <label>Top: <input type="color" id="top-color" value="#cccccc"></label>
+                    <label>Bottom: <input type="color" id="bottom-color" value="#cccccc"></label>
+                </div>
             </div>
         </main>
     </div>
