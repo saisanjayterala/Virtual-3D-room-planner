@@ -25,14 +25,9 @@ const wallColors = {
 // Create room
 function createRoom() {
     const roomGeometry = new THREE.BoxGeometry(roomWidth, roomHeight, roomDepth);
-    const roomMaterials = [
-        new THREE.MeshPhongMaterial({color: wallColors.right, side: THREE.BackSide}),
-        new THREE.MeshPhongMaterial({color: wallColors.left, side: THREE.BackSide}),
-        new THREE.MeshPhongMaterial({color: wallColors.top, side: THREE.BackSide}),
-        new THREE.MeshPhongMaterial({color: wallColors.bottom, side: THREE.BackSide}),
-        new THREE.MeshPhongMaterial({color: wallColors.front, side: THREE.BackSide}),
-        new THREE.MeshPhongMaterial({color: wallColors.back, side: THREE.BackSide})
-    ];
+    const roomMaterials = Object.values(wallColors).map(color => 
+        new THREE.MeshPhongMaterial({color: color, side: THREE.BackSide})
+    );
     return new THREE.Mesh(roomGeometry, roomMaterials);
 }
 
@@ -65,7 +60,9 @@ function createFurniture(type) {
         case 'chair':
             geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
             material = new THREE.MeshPhongMaterial({color: color});
-            mesh = new THREE.Mesh(geometry, material);
+            mesh = new THREE.Group();
+            const seat = new THREE.Mesh(geometry, material);
+            mesh.add(seat);
             const backGeometry = new THREE.BoxGeometry(0.5, 0.7, 0.1);
             const backMesh = new THREE.Mesh(backGeometry, material);
             backMesh.position.set(0, 0.6, -0.2);
@@ -74,7 +71,9 @@ function createFurniture(type) {
         case 'table':
             geometry = new THREE.BoxGeometry(1.5, 0.1, 1);
             material = new THREE.MeshPhongMaterial({color: color});
-            mesh = new THREE.Mesh(geometry, material);
+            mesh = new THREE.Group();
+            const top = new THREE.Mesh(geometry, material);
+            mesh.add(top);
             const legGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.7);
             const legMaterial = new THREE.MeshPhongMaterial({color: color});
             for (let i = 0; i < 4; i++) {
@@ -137,7 +136,7 @@ function createFurniture(type) {
                 }
                 break;
 
-                        default:
+            default:
             geometry = new THREE.BoxGeometry(1, 1, 1);
             material = new THREE.MeshPhongMaterial({color: color});
             mesh = new THREE.Mesh(geometry, material);
@@ -162,7 +161,7 @@ function addFurniture(type) {
 
     // Animation: Drop furniture from the ceiling
     new TWEEN.Tween(item.position)
-        .to({ y: item.geometry.parameters.height / 2 }, 1000)
+        .to({ y: item.geometry ? item.geometry.parameters.height / 2 : 0.5 }, 1000)
         .easing(TWEEN.Easing.Bounce.Out)
         .start();
 }
@@ -188,10 +187,16 @@ function updateRoomDimensions() {
 
 // Function to update wall colors
 function updateWallColors() {
-    room.material.forEach((mat, index) => {
-        const wallName = ['right', 'left', 'top', 'bottom', 'front', 'back'][index];
-        mat.color.setHex(wallColors[wallName]);
-    });
+    if (room.material) {
+        if (Array.isArray(room.material)) {
+            room.material.forEach((mat, index) => {
+                const wallName = ['right', 'left', 'top', 'bottom', 'front', 'back'][index];
+                mat.color.setHex(wallColors[wallName]);
+            });
+        } else {
+            room.material.color.setHex(wallColors.front);
+        }
+    }
 }
 
 // Stats
@@ -234,10 +239,13 @@ document.getElementById('room-depth').addEventListener('input', (e) => {
 
 // Wall color event listeners
 ['front', 'back', 'left', 'right', 'top', 'bottom'].forEach(wall => {
-    document.getElementById(`${wall}-color`).addEventListener('input', (e) => {
-        wallColors[wall] = parseInt(e.target.value.substring(1), 16);
-        updateWallColors();
-    });
+    const colorInput = document.getElementById(`${wall}-color`);
+    if (colorInput) {
+        colorInput.addEventListener('input', (e) => {
+            wallColors[wall] = parseInt(e.target.value.substring(1), 16);
+            updateWallColors();
+        });
+    }
 });
 
 // Window resize handler
@@ -258,45 +266,55 @@ document.getElementById('save-layout').addEventListener('click', () => {
             rotation: item.rotation.toArray()
         }))
     };
-    localStorage.setItem('roomLayout', JSON.stringify(layout));
-    alert('Room layout saved!');
+    try {
+        localStorage.setItem('roomLayout', JSON.stringify(layout));
+        alert('Room layout saved!');
+    } catch (error) {
+        console.error('Error saving room layout:', error);
+        alert('Failed to save room layout. Please try again.');
+    }
 });
 
 // Load room layout
 document.getElementById('load-layout').addEventListener('click', () => {
-    const savedLayout = localStorage.getItem('roomLayout');
-    if (savedLayout) {
-        const layout = JSON.parse(savedLayout);
-        roomWidth = layout.roomDimensions.width;
-        roomHeight = layout.roomDimensions.height;
-        roomDepth = layout.roomDimensions.depth;
-        wallColors = layout.wallColors;
-        updateRoomDimensions();
-        updateWallColors();
-        
-        // Clear existing furniture
-        furniture.forEach(item => scene.remove(item));
-        furniture.length = 0;
-        
-        // Add saved furniture with animation
-        layout.furniture.forEach(item => {
-            const newItem = createFurniture(item.type);
-            newItem.position.fromArray(item.position);
-            newItem.rotation.fromArray(item.rotation);
-            scene.add(newItem);
-            furniture.push(newItem);
+    try {
+        const savedLayout = localStorage.getItem('roomLayout');
+        if (savedLayout) {
+            const layout = JSON.parse(savedLayout);
+            roomWidth = layout.roomDimensions.width;
+            roomHeight = layout.roomDimensions.height;
+            roomDepth = layout.roomDimensions.depth;
+            wallColors = layout.wallColors;
+            updateRoomDimensions();
+            updateWallColors();
+            
+            // Clear existing furniture
+            furniture.forEach(item => scene.remove(item));
+            furniture.length = 0;
+            
+            // Add saved furniture with animation
+            layout.furniture.forEach(item => {
+                const newItem = createFurniture(item.type);
+                newItem.position.fromArray(item.position);
+                newItem.rotation.fromArray(item.rotation);
+                scene.add(newItem);
+                furniture.push(newItem);
 
-            // Animation: Scale up the loaded furniture
-            newItem.scale.set(0.1, 0.1, 0.1);
-            new TWEEN.Tween(newItem.scale)
-                .to({ x: 1, y: 1, z: 1 }, 1000)
-                .easing(TWEEN.Easing.Elastic.Out)
-                .start();
-        });
-        
-        alert('Room layout loaded!');
-    } else {
-        alert('No saved layout found!');
+                // Animation: Scale up the loaded furniture
+                newItem.scale.set(0.1, 0.1, 0.1);
+                new TWEEN.Tween(newItem.scale)
+                    .to({ x: 1, y: 1, z: 1 }, 1000)
+                    .easing(TWEEN.Easing.Elastic.Out)
+                    .start();
+            });
+            
+            alert('Room layout loaded!');
+        } else {
+            alert('No saved layout found!');
+        }
+    } catch (error) {
+        console.error('Error loading room layout:', error);
+        alert('Failed to load room layout. Please try again.');
     }
 });
 
@@ -314,7 +332,7 @@ document.getElementById('toggle-grid').addEventListener('click', () => {
     }
 });
 
-// New feature: Rotate furniture
+// Rotate furniture
 document.getElementById('rotate-furniture').addEventListener('click', () => {
     const selectedFurniture = furniture.find(item => item.userData.selected);
     if (selectedFurniture) {
@@ -327,7 +345,7 @@ document.getElementById('rotate-furniture').addEventListener('click', () => {
     }
 });
 
-// New feature: Delete furniture
+// Delete furniture
 document.getElementById('delete-furniture').addEventListener('click', () => {
     const selectedIndex = furniture.findIndex(item => item.userData.selected);
     if (selectedIndex !== -1) {
@@ -357,16 +375,29 @@ function onMouseClick(event) {
 
     raycaster.setFromCamera(mouse, camera);
 
-    const intersects = raycaster.intersectObjects(furniture);
+    const intersects = raycaster.intersectObjects(furniture, true);
 
     furniture.forEach(item => {
+        item.traverse(child => {
+            if (child.isMesh) {
+                child.material.emissive.setHex(0x000000);
+            }
+        });
         item.userData.selected = false;
-        item.material.emissive.setHex(0x000000);
     });
 
     if (intersects.length > 0) {
-        const selectedItem = intersects[0].object;
-        selectedItem.userData.selected = true;
-        selectedItem.material.emissive.setHex(0x555555);
+        let selectedItem = intersects[0].object;
+        while (selectedItem.parent && !furniture.includes(selectedItem)) {
+            selectedItem = selectedItem.parent;
+        }
+        if (furniture.includes(selectedItem)) {
+            selectedItem.userData.selected = true;
+            selectedItem.traverse(child => {
+                if (child.isMesh) {
+                    child.material.emissive.setHex(0x555555);
+                }
+            });
+        }
     }
 }
