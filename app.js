@@ -147,17 +147,17 @@ function createFurniture(type) {
 
 // Function to add furniture
 function addFurniture(type) {
-    const furniture = createFurniture(type);
+    const item = createFurniture(type);
     
     // Random position within the room
-    furniture.position.set(
+    item.position.set(
         (Math.random() - 0.5) * (roomWidth - 2),
-        furniture.geometry.parameters.height / 2,
+        item.geometry.parameters.height / 2,
         (Math.random() - 0.5) * (roomDepth - 2)
     );
     
-    scene.add(furniture);
-    furniture.push(furniture);
+    scene.add(item);
+    furniture.push(item);
 }
 
 // Function to update room dimensions
@@ -239,4 +239,64 @@ window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// New feature: Save room layout
+document.getElementById('save-layout').addEventListener('click', () => {
+    const layout = {
+        roomDimensions: { width: roomWidth, height: roomHeight, depth: roomDepth },
+        wallColors: wallColors,
+        furniture: furniture.map(item => ({
+            type: item.userData.type,
+            position: item.position.toArray(),
+            rotation: item.rotation.toArray()
+        }))
+    };
+    localStorage.setItem('roomLayout', JSON.stringify(layout));
+    alert('Room layout saved!');
+});
+
+// New feature: Load room layout
+document.getElementById('load-layout').addEventListener('click', () => {
+    const savedLayout = localStorage.getItem('roomLayout');
+    if (savedLayout) {
+        const layout = JSON.parse(savedLayout);
+        roomWidth = layout.roomDimensions.width;
+        roomHeight = layout.roomDimensions.height;
+        roomDepth = layout.roomDimensions.depth;
+        wallColors = layout.wallColors;
+        updateRoomDimensions();
+        updateWallColors();
+        
+        // Clear existing furniture
+        furniture.forEach(item => scene.remove(item));
+        furniture.length = 0;
+        
+        // Add saved furniture
+        layout.furniture.forEach(item => {
+            const newItem = createFurniture(item.type);
+            newItem.position.fromArray(item.position);
+            newItem.rotation.fromArray(item.rotation);
+            scene.add(newItem);
+            furniture.push(newItem);
+        });
+        
+        alert('Room layout loaded!');
+    } else {
+        alert('No saved layout found!');
+    }
+});
+
+// New feature: Toggle grid
+let grid;
+document.getElementById('toggle-grid').addEventListener('click', () => {
+    if (grid) {
+        scene.remove(grid);
+        grid = null;
+    } else {
+        const gridHelper = new THREE.GridHelper(Math.max(roomWidth, roomDepth), 10);
+        gridHelper.position.y = 0.01; // Slightly above the floor
+        scene.add(gridHelper);
+        grid = gridHelper;
+    }
 });
