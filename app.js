@@ -47,35 +47,117 @@ const controls = new THREE.OrbitControls(camera, renderer.domElement);
 // Furniture array
 const furniture = [];
 
-// Function to add furniture
-function addFurniture(type) {
-    let geometry;
+// Function to create furniture
+function createFurniture(type) {
+    let geometry, material, mesh;
+    const color = Math.random() * 0xffffff;
+
     switch (type) {
-        case 'cube':
-            geometry = new THREE.BoxGeometry(1, 1, 1);
+        case 'chair':
+            // Create chair base
+            geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+            material = new THREE.MeshBasicMaterial({color: color});
+            mesh = new THREE.Mesh(geometry, material);
+
+            // Create chair back
+            const backGeometry = new THREE.BoxGeometry(0.5, 0.7, 0.1);
+            const backMesh = new THREE.Mesh(backGeometry, material);
+            backMesh.position.set(0, 0.6, -0.2);
+            mesh.add(backMesh);
             break;
-        case 'sphere':
-            geometry = new THREE.SphereGeometry(0.5, 32, 32);
+
+        case 'table':
+            // Create table top
+            geometry = new THREE.BoxGeometry(1.5, 0.1, 1);
+            material = new THREE.MeshBasicMaterial({color: color});
+            mesh = new THREE.Mesh(geometry, material);
+
+            // Create table legs
+            const legGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.7);
+            const legMaterial = new THREE.MeshBasicMaterial({color: color});
+            for (let i = 0; i < 4; i++) {
+                const leg = new THREE.Mesh(legGeometry, legMaterial);
+                leg.position.set(
+                    i < 2 ? -0.6 : 0.6,
+                    -0.4,
+                    i % 2 === 0 ? 0.4 : -0.4
+                );
+                mesh.add(leg);
+            }
             break;
-        case 'cylinder':
-            geometry = new THREE.CylinderGeometry(0.5, 0.5, 1, 32);
+
+        case 'bed':
+            // Create bed base
+            geometry = new THREE.BoxGeometry(2, 0.3, 1.5);
+            material = new THREE.MeshBasicMaterial({color: color});
+            mesh = new THREE.Mesh(geometry, material);
+
+            // Create bed headboard
+            const headboardGeometry = new THREE.BoxGeometry(2, 0.8, 0.1);
+            const headboardMesh = new THREE.Mesh(headboardGeometry, material);
+            headboardMesh.position.set(0, 0.55, -0.7);
+            mesh.add(headboardMesh);
             break;
+
+        case 'sofa':
+            // Create sofa base
+            geometry = new THREE.BoxGeometry(2, 0.5, 1);
+            material = new THREE.MeshBasicMaterial({color: color});
+            mesh = new THREE.Mesh(geometry, material);
+
+            // Create sofa back
+            const sofaBackGeometry = new THREE.BoxGeometry(2, 0.7, 0.3);
+            const sofaBackMesh = new THREE.Mesh(sofaBackGeometry, material);
+            sofaBackMesh.position.set(0, 0.6, -0.35);
+            mesh.add(sofaBackMesh);
+
+            // Create sofa arms
+            const armGeometry = new THREE.BoxGeometry(0.3, 0.7, 1);
+            const leftArm = new THREE.Mesh(armGeometry, material);
+            leftArm.position.set(-0.85, 0.1, 0);
+            mesh.add(leftArm);
+            const rightArm = new THREE.Mesh(armGeometry, material);
+            rightArm.position.set(0.85, 0.1, 0);
+            mesh.add(rightArm);
+            break;
+
+        case 'bookshelf':
+            // Create bookshelf base
+            geometry = new THREE.BoxGeometry(1.5, 2, 0.4);
+            material = new THREE.MeshBasicMaterial({color: color});
+            mesh = new THREE.Mesh(geometry, material);
+
+            // Create shelves
+            const shelfGeometry = new THREE.BoxGeometry(1.4, 0.05, 0.38);
+            for (let i = 1; i < 5; i++) {
+                const shelf = new THREE.Mesh(shelfGeometry, material);
+                shelf.position.set(0, -1 + i * 0.5, 0);
+                mesh.add(shelf);
+            }
+            break;
+
         default:
             geometry = new THREE.BoxGeometry(1, 1, 1);
+            material = new THREE.MeshBasicMaterial({color: color});
+            mesh = new THREE.Mesh(geometry, material);
     }
-    
-    const material = new THREE.MeshBasicMaterial({color: Math.random() * 0xffffff});
-    const mesh = new THREE.Mesh(geometry, material);
+
+    return mesh;
+}
+
+// Function to add furniture
+function addFurniture(type) {
+    const furniture = createFurniture(type);
     
     // Random position within the room
-    mesh.position.set(
-        (Math.random() - 0.5) * (roomWidth - 1),
-        0.5,
-        (Math.random() - 0.5) * (roomDepth - 1)
+    furniture.position.set(
+        (Math.random() - 0.5) * (roomWidth - 2),
+        furniture.geometry.parameters.height / 2,
+        (Math.random() - 0.5) * (roomDepth - 2)
     );
     
-    scene.add(mesh);
-    furniture.push(mesh);
+    scene.add(furniture);
+    furniture.push(furniture);
 }
 
 // Function to update room dimensions
@@ -91,8 +173,8 @@ function updateRoomDimensions() {
     // Update furniture positions
     furniture.forEach(item => {
         item.position.clamp(
-            new THREE.Vector3(-roomWidth/2 + 0.5, 0.5, -roomDepth/2 + 0.5),
-            new THREE.Vector3(roomWidth/2 - 0.5, roomHeight - 0.5, roomDepth/2 - 0.5)
+            new THREE.Vector3(-roomWidth/2 + 1, item.position.y, -roomDepth/2 + 1),
+            new THREE.Vector3(roomWidth/2 - 1, item.position.y, roomDepth/2 - 1)
         );
     });
 }
@@ -107,11 +189,16 @@ function updateWallColors() {
     room.material[5].color.setHex(wallColors.back);
 }
 
+// Stats
+const stats = new Stats();
+document.body.appendChild(stats.dom);
+
 // Animation loop
 function animate() {
     requestAnimationFrame(animate);
     controls.update();
     renderer.render(scene, camera);
+    stats.update();
 }
 animate();
 
