@@ -32,9 +32,13 @@ main {
     background-color: #ddd;
 }
 
-button {
+button, select {
     display: block;
     width: 100%;
     margin-bottom: 0.5rem;
     padding: 0.5rem;
+}
+
+select {
+    margin-top: 1rem;
 }
